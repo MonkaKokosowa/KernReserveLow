@@ -37,8 +37,9 @@ $(OUT)/DEBUG/KernReserveLow.o: KernReserveLow.c
 	objcopy -j .text -j .sdata -j .data -j .rodata -j .dynamic -j .dynsym -j .rel -j .rela -j .rel.* -j .rela.* \
 	        -j .reloc -I elf64-x86-64 -O efi-bsdrv-x86_64 $< $@
 
+# only cleans the default build folder, with a literal path (no variables in rm)
 clean:
-	rm -rf $(OUT)/RELEASE $(OUT)/DEBUG
+	rm -rf build
 
 .PHONY: all release debug clean
 .SECONDARY:
