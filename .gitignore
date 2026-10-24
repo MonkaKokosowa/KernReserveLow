@@ -3,3 +3,6 @@
 *.efi
 build/
 release/
+UDK/
+Binaries/
+build.log

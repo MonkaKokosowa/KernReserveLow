@@ -1,0 +1,8 @@
+## @file
+#  KernReserveLowPkg
+##
+[Defines]
+  DEC_SPECIFICATION = 0x00010005
+  PACKAGE_NAME      = KernReserveLowPkg
+  PACKAGE_GUID      = 5A1B0C3D-7E2F-4A61-9B8C-4D5E6F708194
+  PACKAGE_VERSION   = 1.1

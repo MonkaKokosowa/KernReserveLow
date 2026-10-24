@@ -64,6 +64,15 @@ It costs about 155 MB of RAM, which I'm fine with.
 Starting at 0 is on purpose, because the first MB failed too. XNU uses its first three pages (low globals and the
 real-mode trampoline) by fixed address, without looking at the memory map, so that's safe.
 
+Since 1.1 (v4) it only does that while macOS is starting. 1.0 changed the map for every OS OpenCore started, and
+Windows' boot loader just sits at the OEM logo when the whole low RAM is "reserved". So the driver also wraps
+`gBS->StartImage` and only changes the map while an Apple boot loader runs: a file called `boot.efi` or
+`tmbootpicker.efi`, or anything under `com.apple.recovery.boot`. That's the same check OpenCore itself uses
+(`OcGetBootDevicePathType`). OpenCore loads `UEFI -> Drivers` after it installed its own `StartImage` hooks, so this
+wrapper sits on the outside and sees every image start. Keep `LoadEarly` off.
+
+If you want the old behaviour back for some reason, put `always` in the driver's `Arguments` in config.plist.
+
 ## RELEASE and DEBUG
 
 There are two builds, kind of like OpenCore itself:
@@ -118,21 +127,26 @@ before. With this driver both go through fine.
 
 ## building
 
-Linux with gnu-efi (`sudo apt install gnu-efi` on Debian/Ubuntu):
+It's an EDK2 driver now, built the same way as acidanthera's stuff (their `ocbuild` `efibuild.sh`, pinned in
+`tools/`). Works on macOS and Linux:
 
 ```sh
-make            # -> build/RELEASE/KernReserveLow.efi and build/DEBUG/KernReserveLow.efi
-make release    # only RELEASE
-make debug      # only DEBUG
+./build_krl.tool     # -> Binaries/DEBUG/KernReserveLow.efi and Binaries/RELEASE/KernReserveLow.efi
 ```
 
-The DEBUG build is just the same file compiled with `-DKRL_DEBUG`.
+- macOS: Xcode command line tools, plus `nasm`, `iasl` and `mtoc` on your PATH. If they're missing, efibuild.sh offers
+  to drop acidanthera's prebuilt ones into `/usr/local/bin` (with sudo). I keep them in a folder of my own instead.
+- Linux: gcc or clang, `nasm`, `iasl` (`acpica-tools`), `uuid-dev`, python3. Output folders get the toolchain name
+  in front (`GCC-RELEASE`, ...).
 
-There's a note in the Makefile about `.rodata`. gnu-efi 4 keeps strings there, and if `objcopy` doesn't copy
-that section the driver loads without errors and then does nothing at all.
+The first run clones acidanthera's EDK2 (`audk`) into `UDK/` and builds its BaseTools, which takes a few minutes.
+RELEASE is built with `MDEPKG_NDEBUG`, which drops all the logging code.
+
+The old gnu-efi version (1.0) is in `legacy-gnu-efi/` with its Makefile, in case anyone wants it.
 
 ## files
 
-- `KernReserveLow.c`: the driver
-- `Makefile`
+- `KernReserveLow/KernReserveLow.c` + `.inf`: the driver
+- `KernReserveLowPkg.dsc` / `.dec`, `build_krl.tool`, `tools/efibuild.sh`: the EDK2 build
+- `legacy-gnu-efi/`: 1.0, gnu-efi + Makefile
 - `release/`: the RELEASE and DEBUG builds, plus `SHA256SUMS`

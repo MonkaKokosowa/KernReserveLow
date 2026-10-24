@@ -1,0 +1,35 @@
+## @file
+#  KernReserveLow: hide RAM 0-0x9F14000 from macOS (XHCI DMA fault on the Lenovo LOQ 15ARP9), only while an Apple
+#  boot loader runs. OpenCore UEFI -> Drivers, LoadEarly off.
+##
+[Defines]
+  INF_VERSION    = 0x00010005
+  BASE_NAME      = KernReserveLow
+  FILE_GUID      = 5A1B0C3D-7E2F-4A61-9B8C-4D5E6F708193
+  MODULE_TYPE    = UEFI_DRIVER
+  VERSION_STRING = 1.1.0
+  ENTRY_POINT    = KernReserveLowEntry
+
+[Sources]
+  KernReserveLow.c
+
+[Packages]
+  MdePkg/MdePkg.dec
+
+[LibraryClasses]
+  BaseLib
+  BaseMemoryLib
+  DevicePathLib
+  MemoryAllocationLib
+  PrintLib
+  UefiBootServicesTableLib
+  UefiDriverEntryPoint
+  UefiLib
+  UefiRuntimeServicesTableLib
+
+[Protocols]
+  gEfiLoadedImageProtocolGuid
+  gEfiSimpleFileSystemProtocolGuid
+
+[Guids]
+  gEfiFileInfoGuid
